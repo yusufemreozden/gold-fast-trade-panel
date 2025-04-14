@@ -84,7 +84,7 @@
         background-color: #2b2b2b;
         color: #fff;
     }
-    .panel .toggle {
+    .toggle {
         display: flex;
         margin: 10px 0;
     }
@@ -139,6 +139,17 @@
         border-radius: 8px;
         cursor: pointer;
     }
+    #clearBtn {
+        width: 100%;
+        margin-top: 10px;
+        padding: 10px;
+        background-color: darkred;
+        color: white;
+        font-weight: bold;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
     #summaryBox {
         margin-top: 30px;
         background: #222;
@@ -151,52 +162,21 @@
 </head>
 <body class="fade-in">
 
-    <div id="loginPanel" style="
-    position: fixed;
-    inset: 0;
-    background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('43391571.jpg');
-    background-size: cover;
-    background-position: center;
-    z-index: 9999;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    font-family: 'Segoe UI', sans-serif;
-    backdrop-filter: blur(4px);
+    <!-- GİRİŞ PANELİ -->
+    <div id="loginPanel" style="position:fixed; inset:0; background:linear-gradient(rgba(0,0,0,.6),rgba(0,0,0,.6)), url('43391571.jpg'); background-size:cover; background-position:center; z-index:9999; display:flex; flex-direction:column; justify-content:center; align-items:center; backdrop-filter:blur(4px);">
+        <h2 style="color:gold; margin-bottom:20px; text-shadow:1px 1px 5px black;">🔐 Giriş Yap</h2>
+        <input type="password" id="passwordInput" placeholder="Şifre" style="padding:12px; font-size:16px; border-radius:5px; border:none; background:rgba(0,0,0,0.7); color:gold; text-align:center;">
+        <button onclick="checkPassword()" style="margin-top:15px; padding:12px 25px; font-size:16px; background:linear-gradient(to right, gold, orange); color:black; font-weight:bold; border:none; border-radius:5px; cursor:pointer;">Giriş</button>
+        <div id="loginError" style="color:#f66; margin-top:10px;"></div>
+    </div>
 
-">
-    <h2 style="color: gold; margin-bottom: 20px; text-shadow: 1px 1px 5px black;">🔐 Giriş Yap</h2>
-    <input type="password" id="passwordInput" placeholder="Şifre" style="
-        padding: 12px;
-        font-size: 16px;
-        border-radius: 5px;
-        border: none;
-        background: rgba(0, 0, 0, 0.7);
-        color: gold;
-        box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
-        text-align: center;
-        outline: none;
-    ">
-    <button onclick="checkPassword()" style="
-        margin-top: 15px;
-        padding: 12px 25px;
-        font-size: 16px;
-        background: linear-gradient(to right, gold, orange);
-        color: black;
-        font-weight: bold;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-        transition: all 0.3s ease;
-    " onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">Giriş</button>
-    <div id="loginError" style="color: #f66; margin-top: 10px;"></div>
-</div>  
+    <!-- BAŞLIK -->
     <div class="header">
         <h1>💎 Doğruel Kuyumculuk Hızlı İşlem Paneli</h1>
     </div>
+
     <div class="container">
+        <!-- MENÜ -->
         <div class="menu">
             <h3>Döviz Ürünleri</h3>
             <button data-urun="Has Altın">Has Altın</button>
@@ -207,8 +187,11 @@
             <button data-urun="Çeyrek">Çeyrek</button>
             <button data-urun="Yarım">Yarım</button>
             <button data-urun="Cumhuriyet">Cumhuriyet</button>
-            <button data-urun="Ata Lira">Ata Lira</button>                        
+            <button data-urun="Ata Lira">Ata Lira</button>
+            <div id="priceTimeInfo" style="font-size:10px; color:#888; margin-top:5px;"></div>
         </div>
+
+        <!-- PANEL -->
         <div class="panel">
             <div class="toggle">
                 <button id="satisBtn" class="active" onclick="setMode('satis')">SATIŞ</button>
@@ -232,183 +215,181 @@
                 <button onclick="calculate()">=</button>
             </div>
             <button id="submitBtn" onclick="submitTransaction()">İŞLEMİ TAMAMLA</button>
-            <div class="output" id="transactionHistory" style="margin-top: 30px; border-top: 1px solid #333; padding-top: 20px;"></div>
+            <button id="clearBtn" onclick="clearTransactions()">🗑 Geçmişi Temizle</button>
+            <div id="transactionHistory" style="margin-top:30px; border-top:1px solid #333; padding-top:20px;"></div>
             <div id="summaryBox">Toplam Kâr: 0 TL</div>
+            <button id="exportBtn" style="
+                margin-top: 20px;
+                padding: 10px 20px;
+                font-size: 14px;
+                background: linear-gradient(to right, #444, #222);
+                color: gold;
+                border: 1px solid #555;
+                border-radius: 5px;
+                cursor: pointer;
+            ">📤 Verileri Dışa Aktar</button>
+
         </div>
     </div>
-    <!-- TEMİZLENMİŞ VE GÜNCELLENMİŞ KOD (TRUNCgil API ENTEGRASYONU) -->
-    <script>
-        let currentMode = 'satis';
-        let selected = { name: '', price: 0 };
-        const transactions = [];
-        let totalProfit = 0;
-        const prices = {};
-    
-        async function fetchPrices() {
-            try {
-                const res = await fetch("https://api.allorigins.win/raw?url=https://finans.truncgil.com/v4/today.json");
-                const data = await res.json();
-    
-                prices["Dolar"] = parseFloat(data["USD"]["Selling"]);
-                prices["Euro"] = parseFloat(data["EUR"]["Selling"]);
-                prices["Sterlin"] = parseFloat(data["GBP"]["Selling"]);
-    
-                prices["Has Altın"] = parseFloat(data["HAS"]?.Selling || 0);
-                prices["Çeyrek"] = parseFloat(data["CEY"]?.Selling || prices["Has Altın"] * 1.75);
-                prices["Yarım"] = parseFloat(data["YAR"]?.Selling || prices["Has Altın"] * 3.5);
-                prices["Ata Lira"] = parseFloat(data["ATA"]?.Selling || prices["Has Altın"] * 7.2);
-                prices["Gram Altın"] = parseFloat(data["GRA"]?.Selling || 0);
-                prices["Cumhuriyet"] = parseFloat(data["CUM"]?.Selling || 0);
-    
-                updateMenuButtons();
-            } catch (e) {
-                console.error("Fiyatlar çekilemedi:", e);
-                alert("Veriler alınamadı. İnternet bağlantınızı kontrol edin veya tekrar deneyin.");
-            }
-        }
-    
-        function updateMenuButtons() {
-            const urunler = ['Has Altın', 'Dolar', 'Euro', 'Sterlin', 'Çeyrek', 'Yarım', 'Ata Lira', 'Gram Altın', 'Cumhuriyet'];
-            urunler.forEach(urun => {
-                const btn = document.querySelector(`button[data-urun='${urun}']`);
-                if (btn) {
-                    btn.innerText = `${urun} – ${prices[urun]?.toFixed(2) || '?'} TL`;
-                }
-            });
-            const ataBtn = document.querySelector(`button[data-urun='Ata Lira']`);
-            if (ataBtn && !document.getElementById("priceTimeInfo")) {
-                const now = new Date().toLocaleTimeString('tr-TR', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit'
-                });
-                const infoDiv = document.createElement("div");
-                infoDiv.id = "priceTimeInfo";
-                infoDiv.innerText = `🕒 Fiyat Güncellenme: ${now}.`;
-                infoDiv.style.fontSize = "10px";
-                infoDiv.style.color = "#888";
-                infoDiv.style.marginTop = "4px";
-                ataBtn.parentElement.appendChild(infoDiv);
-            } else if (ataBtn) {
-                const infoDiv = document.getElementById("priceTimeInfo");
-                if (infoDiv) {
-                    const now = new Date().toLocaleTimeString('tr-TR', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        second: '2-digit'
-                    });
-                    infoDiv.innerText = `🕒 Fiyat Güncellenme: ${now}.`;
-                }
-            }
-        }
 
-    
-        function setMode(mode) {
-            currentMode = mode;
-            document.getElementById('satisBtn').classList.remove('active');
-            document.getElementById('alisBtn').classList.remove('active');
-            document.getElementById(mode + 'Btn').classList.add('active');
-            calculate();
+    <!-- JAVASCRIPT -->
+     <script>
+    let currentMode = 'satis';
+    let selected = { name: '', price: 0 };
+    const transactions = [];
+    let totalProfit = 0;
+    const prices = {};
+
+    async function fetchPrices() {
+        try {
+            const res = await fetch("https://api.allorigins.win/raw?url=https://finans.truncgil.com/v4/today.json");
+            const data = await res.json();
+            prices["Dolar"] = parseFloat(data["USD"]["Selling"]);
+            prices["Euro"] = parseFloat(data["EUR"]["Selling"]);
+            prices["Sterlin"] = parseFloat(data["GBP"]["Selling"]);
+            prices["Has Altın"] = parseFloat(data["HAS"]?.Selling || 0);
+            prices["Çeyrek"] = parseFloat(data["CEY"]?.Selling || prices["Has Altın"] * 1.75);
+            prices["Yarım"] = parseFloat(data["YAR"]?.Selling || prices["Has Altın"] * 3.5);
+            prices["Ata Lira"] = parseFloat(data["ATA"]?.Selling || prices["Has Altın"] * 7.2);
+            prices["Gram Altın"] = parseFloat(data["GRA"]?.Selling || 0);
+            prices["Cumhuriyet"] = parseFloat(data["CUM"]?.Selling || 0);
+            updateMenuButtons();
+        } catch (e) {
+            alert("Veriler alınamadı.");
         }
-    
-        function selectProduct(name, price) {
-            selected.name = name;
-            selected.price = price;
-            document.getElementById('selectedProduct').innerText = `Ürün: ${name}`;
-            calculate();
-        }
-    
-        function appendNumber(num) {
-            const adetInput = document.getElementById("adet");
-            adetInput.value += num;
-            calculate();
-        }
-    
-        function clearInput() {
-            document.getElementById("adet").value = '';
-            document.getElementById("calcResult").innerText = 'Tutar: 0 TL';
-        }
-    
-        function calculate() {
-            const adet = parseFloat(document.getElementById("adet").value);
-            if (!isNaN(adet) && selected.price > 0) {
-                const tutar = adet * selected.price;
-                document.getElementById("calcResult").innerText = `Tutar: ${tutar.toFixed(2)} TL`;
-            }
-        }
-    
-        function submitTransaction() {
-            const adet = parseFloat(document.getElementById("adet").value);
-            if (!selected.name || isNaN(adet)) {
-                alert("Lütfen ürün seçin ve adet girin.");
-                return;
-            }
+    }
+
+    function updateMenuButtons() {
+        const urunler = Object.keys(prices);
+        urunler.forEach(urun => {
+            const btn = document.querySelector(`button[data-urun='${urun}']`);
+            if (btn) btn.innerText = `${urun} – ${prices[urun]?.toFixed(2) || '?'} TL`;
+        });
+        const now = new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        document.getElementById("priceTimeInfo").innerText = `🕒 Fiyat Güncellenme: ${now}`;
+    }
+
+    function setMode(mode) {
+        currentMode = mode;
+        document.getElementById('satisBtn').classList.toggle('active', mode === 'satis');
+        document.getElementById('alisBtn').classList.toggle('active', mode === 'alis');
+        calculate();
+    }
+
+    function selectProduct(name, price) {
+        selected.name = name;
+        selected.price = price;
+        document.getElementById('selectedProduct').innerText = `Ürün: ${name}`;
+        calculate();
+    }
+
+    function appendNumber(num) {
+        const adetInput = document.getElementById("adet");
+        adetInput.value += num;
+        calculate();
+    }
+
+    function clearInput() {
+        document.getElementById("adet").value = '';
+        document.getElementById("calcResult").innerText = 'Tutar: 0 TL';
+    }
+
+    function calculate() {
+        const adet = parseFloat(document.getElementById("adet").value);
+        if (!isNaN(adet) && selected.price > 0) {
             const tutar = adet * selected.price;
-            const date = new Date().toLocaleString();
-            const isSatis = currentMode === 'satis';
-            const kar = isSatis ? adet * (selected.price * 0.03) : 0;
-    
-            const data = {
-                tarih: date,
-                tur: currentMode.toUpperCase(),
-                urun: selected.name,
-                fiyat: selected.price,
-                adet: adet,
-                tutar: tutar.toFixed(2),
-                kar: kar.toFixed(2)
-            };
-    
-            transactions.push(data);
-            if (isSatis) totalProfit += kar;
+            document.getElementById("calcResult").innerText = `Tutar: ${tutar.toFixed(2)} TL`;
+        }
+    }
+
+    function submitTransaction() {
+        const adet = parseFloat(document.getElementById("adet").value);
+        if (!selected.name || isNaN(adet)) return alert("Ürün ve adet girin.");
+        const tutar = adet * selected.price;
+        const date = new Date().toLocaleString();
+        const kar = currentMode === 'satis' ? adet * (selected.price * 0.03) : 0;
+        const data = { tarih: date, tur: currentMode.toUpperCase(), urun: selected.name, fiyat: selected.price, adet, tutar: tutar.toFixed(2), kar: kar.toFixed(2) };
+        transactions.push(data);
+        if (kar > 0) totalProfit += kar;
+        saveToLocalStorage();
+        renderTransactions();
+        clearInput();
+    }
+
+    function renderTransactions() {
+        const out = document.getElementById("transactionHistory");
+        out.innerHTML = '<h3>📋 Günlük İşlemler</h3>' + transactions.map(t =>
+            `<div style='margin-bottom:10px;'><strong>${t.tur}</strong> – ${t.urun} – ${t.adet} × ${t.fiyat} TL = <strong>${t.tutar} TL</strong> ${t.kar > 0 ? `(<span style='color:lime'>+${t.kar} TL kâr</span>)` : ''}<br><small>${t.tarih}</small></div>`
+        ).join('');
+        document.getElementById("summaryBox").innerText = `Toplam Kâr: ${totalProfit.toFixed(2)} TL`;
+    }
+
+    function saveToLocalStorage() {
+        localStorage.setItem("transactions", JSON.stringify(transactions));
+        localStorage.setItem("totalProfit", totalProfit.toFixed(2));
+    }
+
+    function loadFromLocalStorage() {
+        const saved = localStorage.getItem("transactions");
+        const savedProfit = localStorage.getItem("totalProfit");
+        if (saved) transactions.push(...JSON.parse(saved));
+        if (savedProfit) totalProfit = parseFloat(savedProfit);
+        renderTransactions();
+    }
+
+    function clearTransactions() {
+        if (confirm("Tüm işlemleri silmek istiyor musun?")) {
+            transactions.length = 0;
+            totalProfit = 0;
+            localStorage.removeItem("transactions");
+            localStorage.removeItem("totalProfit");
             renderTransactions();
-            clearInput();
         }
-    
-        function renderTransactions() {
-            const out = document.getElementById("transactionHistory");
-            out.innerHTML = '<h3>📋 Günlük İşlemler</h3>' +
-                transactions.map(t =>
-                    `<div style='margin-bottom:10px;'>
-                        <strong>${t.tur}</strong> – ${t.urun} – ${t.adet} adet × ${t.fiyat} TL = <strong>${t.tutar} TL</strong>
-                        ${t.kar > 0 ? `(<span style='color:lime'>+${t.kar} TL kâr</span>)` : ''}<br><small>${t.tarih}</small>
-                    </div>`
-                ).join('');
-            document.getElementById("summaryBox").innerText = `Toplam Kâr: ${totalProfit.toFixed(2)} TL`;
+    }
+
+    function checkPassword() {
+        const correctPassword = "dogruel";
+        const input = document.getElementById("passwordInput").value;
+        if (input === correctPassword) {
+            document.getElementById("loginPanel").classList.add("fade-out");
+            setTimeout(() => document.getElementById("loginPanel").style.display = "none", 600);
+        } else {
+            document.getElementById("loginError").innerText = "❌ Hatalı şifre!";
         }
-        window.onload = () => {
+    }
+
+    function exportToCSV() {
+        let csv = "Tarih,İşlem Türü,Ürün,Fiyat,Adet,Tutar,Kâr\n";
+        transactions.forEach(t => {
+            csv += `${t.tarih},${t.tur},${t.urun},${t.fiyat},${t.adet},${t.tutar},${t.kar}\n`;
+        });
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "dogruel_islem_gecmisi.csv";
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    window.onload = () => {
         fetchPrices();
         setInterval(fetchPrices, 60000);
-        document.getElementById("passwordInput").addEventListener("keyup", function (event) {
-            if (event.key === "Enter") {
-                checkPassword();
-            }
+        loadFromLocalStorage();
+        document.getElementById("passwordInput").addEventListener("keyup", e => {
+            if (e.key === "Enter") checkPassword();
         });
         document.querySelectorAll("button[data-urun]").forEach(btn => {
             const urun = btn.getAttribute("data-urun");
             btn.onclick = () => {
                 const fiyat = prices[urun] || 0;
-                if (!fiyat) {
-                    alert(`${urun} fiyatı henüz yüklenmedi. Lütfen birkaç saniye sonra tekrar deneyin.`);
-                    return;
-                }
+                if (!fiyat) return alert(`${urun} fiyatı henüz hazır değil.`);
                 selectProduct(urun, fiyat);
             };
         });
+        document.getElementById("exportBtn").addEventListener("click", exportToCSV);
     };
+    </script>
 
-        function checkPassword() {
-        const correctPassword = "dogruel";  // ŞİFREYİ BURADA BELİRLİYORSUN
-        const input = document.getElementById("passwordInput").value;
-        const loginPanel = document.getElementById("loginPanel");
-        if (input === correctPassword) {
-            loginPanel.classList.add("fade-out");
-            setTimeout(() => {
-                loginPanel.style.display = "none";
-            }, 600); // animasyon süresi kadar bekle
-            } else {
-                document.getElementById("loginError").innerText = "❌ Hatalı şifre!";
-            }
-        }
-        </script>
 </body>
 </html>

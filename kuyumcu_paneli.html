@@ -165,10 +165,16 @@
     <!-- GİRİŞ PANELİ -->
     <div id="loginPanel" style="position:fixed; inset:0; background:linear-gradient(rgba(0,0,0,.6),rgba(0,0,0,.6)), url('43391571.jpg'); background-size:cover; background-position:center; z-index:9999; display:flex; flex-direction:column; justify-content:center; align-items:center; backdrop-filter:blur(4px);">
         <h2 style="color:gold; margin-bottom:20px; text-shadow:1px 1px 5px black;">🔐 Giriş Yap</h2>
-        <input type="password" id="passwordInput" placeholder="Şifre" style="padding:12px; font-size:16px; border-radius:5px; border:none; background:rgba(0,0,0,0.7); color:gold; text-align:center;">
-        <button onclick="checkPassword()" style="margin-top:15px; padding:12px 25px; font-size:16px; background:linear-gradient(to right, gold, orange); color:black; font-weight:bold; border:none; border-radius:5px; cursor:pointer;">Giriş</button>
+    
+        <input type="text" id="usernameInput" placeholder="Kullanıcı Adı" style="padding:12px; margin-bottom:10px; font-size:16px; border-radius:5px; border:none; background:rgba(0,0,0,0.7); color:gold; text-align:center; width: 200px;">
+    
+        <input type="password" id="passwordInput" placeholder="Şifre" style="padding:12px; font-size:16px; border-radius:5px; border:none; background:rgba(0,0,0,0.7); color:gold; text-align:center; width: 200px;">
+    
+        <button onclick="checkLogin()" style="margin-top:15px; padding:12px 25px; font-size:16px; background:linear-gradient(to right, gold, orange); color:black; font-weight:bold; border:none; border-radius:5px; cursor:pointer;">Giriş</button>
+        
         <div id="loginError" style="color:#f66; margin-top:10px;"></div>
     </div>
+    
 
     <!-- BAŞLIK -->
     <div class="header">
@@ -347,16 +353,21 @@
         }
     }
 
-    function checkPassword() {
-        const correctPassword = "dogruel";
-        const input = document.getElementById("passwordInput").value;
-        if (input === correctPassword) {
-            document.getElementById("loginPanel").classList.add("fade-out");
-            setTimeout(() => document.getElementById("loginPanel").style.display = "none", 600);
-        } else {
-            document.getElementById("loginError").innerText = "❌ Hatalı şifre!";
-        }
+    function checkLogin() {
+    const username = document.getElementById("usernameInput").value.trim();
+    const password = document.getElementById("passwordInput").value;
+
+    const correctUsername = "aras";
+    const correctPassword = "dogruel";
+
+    if (username === correctUsername && password === correctPassword) {
+        document.getElementById("loginPanel").classList.add("fade-out");
+        setTimeout(() => document.getElementById("loginPanel").style.display = "none", 600);
+    } else {
+        document.getElementById("loginError").innerText = "❌ Hatalı kullanıcı adı veya şifre!";
     }
+}
+
 
     function exportToCSV() {
         let csv = "Tarih,İşlem Türü,Ürün,Fiyat,Adet,Tutar,Kâr\n";
@@ -377,8 +388,12 @@
         setInterval(fetchPrices, 60000);
         loadFromLocalStorage();
         document.getElementById("passwordInput").addEventListener("keyup", e => {
-            if (e.key === "Enter") checkPassword();
+            if (e.key === "Enter") checkLogin();
         });
+        document.getElementById("usernameInput").addEventListener("keyup", e => {
+            if (e.key === "Enter") checkLogin();
+        });
+
         document.querySelectorAll("button[data-urun]").forEach(btn => {
             const urun = btn.getAttribute("data-urun");
             btn.onclick = () => {
@@ -390,6 +405,8 @@
         document.getElementById("exportBtn").addEventListener("click", exportToCSV);
     };
     </script>
-
+<footer style="text-align:center; padding:15px 0; font-size:13px; color:#888; border-top:1px solid #333; margin-top:40px;">
+    © 2025 Yusuf Emre Özden. Tüm hakları saklıdır.
+</footer>
 </body>
 </html>
